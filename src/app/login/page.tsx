@@ -6,7 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
+
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type LoginData = {
   username: string;
@@ -27,22 +30,27 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginData) => {
     setLoading(true);
     setError("");
+    const { username, password } = data;
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
 
-    try {
-      if (data.username === "admin" && data.password === "123456") {
-        router.push("/");
-      } else {
-        throw new Error("用户名或密码错误");
-      }
-    } catch (err: any) {
-      setError(err.message || "登录失败");
-    } finally {
-      setLoading(false);
+    const result = await res.json();
+    if (res.ok) {
+      toast.success("登录成功");
+      router.push("/");
+    } else {
+      toast.error(result.error || "登录失败");
+      console.error("登录失败", result.error);
     }
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-tr from-[#0f172a] via-[#1e293b] to-[#0f172a]">
+      <Toaster richColors position="top-center" />
       <div
         className="hidden md:flex flex-1 items-center justify-center bg-black bg-opacity-60"
         style={{
