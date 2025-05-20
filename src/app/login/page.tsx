@@ -31,21 +31,25 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     const { username, password } = data;
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    const result = await res.json();
-    if (res.ok) {
-      toast.success("登录成功");
-      router.push("/");
-    } else {
-      toast.error(result.error || "登录失败");
-      console.error("登录失败", result.error);
+      const result = await res.json();
+      if (res.ok) {
+        toast.success("登录成功");
+        router.push("/");
+      } else {
+        toast.error(result.error || "登录失败");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "登录失败");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

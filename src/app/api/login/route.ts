@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcrypt";
+import { signToken } from "@/lib/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,7 +11,6 @@ const supabase = createClient(
 export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
-
     if (!username || !password) {
       return NextResponse.json({ error: "用户名或密码不能为空" }, { status: 400 });
     }
@@ -28,15 +28,25 @@ export async function POST(req: Request) {
     }
 
     const user = users[0];
-
     // 验证密码
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json({ error: "密码错误" }, { status: 401 });
     }
 
+    const token = signToken({ id: user.id, username: user.username });
+
     // 登录成功
-    return NextResponse.json({ message: "登录成功", user: { id: user.id, username: user.username } });
+    const res  = NextResponse.json({ message: "登录成功", user: { id: user.id, username: user.username } })
+
+    res.cookies.set("token", token, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24, // 1天
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    return res
   } catch (err) {
     console.error("登录接口错误:", err);
     return NextResponse.json({ error: "服务器错误" }, { status: 500 });
