@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     try {
       await jwtVerify(token, secret);
       return NextResponse.next();
-    } catch (err) {
+    } catch {
       if (pathname.startsWith("/api")) {
         return NextResponse.json({ message: "token 无效" }, { status: 401 });
       } else {
