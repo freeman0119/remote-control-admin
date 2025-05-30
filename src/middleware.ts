@@ -15,10 +15,8 @@ export async function middleware(req: NextRequest) {
 
   if (isProtected && !user) {
     const baseUrl = req.nextUrl.origin
-    const loginPath = '/login'
-    const redirectedFrom = encodeURIComponent(req.nextUrl.pathname)
-    const loginUrl = `${baseUrl}${loginPath}?redirectedFrom=${redirectedFrom}`
-
+    const loginUrl = new URL('/login', baseUrl)
+    loginUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
     return NextResponse.redirect(loginUrl)
   }
 
